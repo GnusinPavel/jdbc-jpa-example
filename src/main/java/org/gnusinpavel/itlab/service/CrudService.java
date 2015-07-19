@@ -6,11 +6,11 @@ import java.util.List;
  * Стандартные операции над объектом БД
  */
 public interface CrudService<T> {
-    T create(T t);
+    T create(T model);
 
-    T update(T t);
+    int update(T model);
 
-    void delete(long id);
+    int delete(long id);
 
     T get(long id);
 

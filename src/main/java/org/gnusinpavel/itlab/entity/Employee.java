@@ -11,7 +11,6 @@ public class Employee {
     }
 
     public Employee(String name, String surname, int age, boolean gender) {
-        this.id = id;
         this.name = name;
         this.surname = surname;
         this.age = age;
@@ -56,5 +55,39 @@ public class Employee {
 
     public void setMale(boolean gender) {
         this.gender = gender;
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = (int) id;
+        hashCode = 47 * hashCode + (name != null ? xor(name.getBytes()) : 0);
+        hashCode = 47 * hashCode + (surname != null ? xor(surname.getBytes()) : 0);
+        hashCode = 47 * hashCode + xor(Integer.toString(age).getBytes());
+        hashCode = 47 * hashCode + xor(Boolean.toString(gender).getBytes());
+        return hashCode;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        } else if (hashCode() != obj.hashCode()) {
+            return false;
+        } else if (obj instanceof Employee) {
+            Employee e = (Employee) obj;
+            return id == e.id && name.equals(e.name) && surname.equals(e.surname) && age == e.age && gender == e.gender;
+        }
+        return super.equals(obj);
+    }
+
+    private int xor(byte... bytes) {
+        if (bytes == null) {
+            return 0;
+        }
+        int result = 0;
+        for (byte b : bytes) {
+            result ^= b;
+        }
+        return result;
     }
 }
