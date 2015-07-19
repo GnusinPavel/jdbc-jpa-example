@@ -8,56 +8,88 @@ import java.util.List;
 
 public class JPAService implements CrudService<Employee> {
     private EntityManagerFactory factory = Persistence.createEntityManagerFactory("myUnit");
-    private EntityManager em = factory.createEntityManager();
 
     public Employee create(Employee employee) {
-        em.getTransaction().begin();
+        EntityManager em = getEm();
         try {
+            em.getTransaction().begin();
             em.persist(employee);
             em.getTransaction().commit();
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             throw new RuntimeException("Не удалось создать объект: " + e.getMessage());
+        } finally {
+            em.close();
         }
         return employee;
     }
 
     public List<Employee> list() {
-        TypedQuery<Employee> query = em.createQuery("SELECT e FROM Employee e", Employee.class);
-        return query.getResultList();
+        EntityManager em = getEm();
+        try {
+            TypedQuery<Employee> query = em.createQuery("SELECT e FROM Employee e", Employee.class);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
 
     public int update(Employee employee) {
-        em.getTransaction().begin();
+        EntityManager em = getEm();
         try {
-            em.persist(employee);
+            em.getTransaction().begin();
+            if (!em.contains(employee)) {
+                em.merge(employee);
+            }
             em.getTransaction().commit();
             return 1;
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             throw new RuntimeException("Не удалось обновить объект: " + e.getMessage());
+        } finally {
+            em.close();
         }
     }
 
     public int delete(long id) {
-        Employee e = get(id);
-        if (e != null) {
-            em.remove(e);
-            return 1;
+        EntityManager em = getEm();
+        try {
+            Employee e = get(id);
+            em.getTransaction().begin();
+            if (e != null) {
+                e = em.merge(e);
+                em.remove(e);
+                em.getTransaction().commit();
+                return 1;
+            }
+            return -1;
+        } finally {
+            em.close();
         }
-        return -1;
     }
 
     @Override
     public Employee get(long id) {
-        return em.find(Employee.class, id);
+        EntityManager em = getEm();
+        try {
+            return em.find(Employee.class, id);
+        } finally {
+            em.close();
+        }
 
-//        TypedQuery<Employee> query = em.createQuery("SELECT e FROM Employee e where e.id = :id", Employee.class);
-//        query.setParameter("id", id);
+//        EntityManager em = getEm();
 //        try {
+//            TypedQuery<Employee> query = em.createQuery("SELECT e FROM Employee e where e.id = :id", Employee.class);
+//            query.setParameter("id", id);
 //            return query.getSingleResult();
 //        } catch (NoResultException e) {
 //            return null;
+//        } finally {
+//            em.close();
 //        }
+    }
+
+    private EntityManager getEm() {
+        return factory.createEntityManager();
     }
 }
