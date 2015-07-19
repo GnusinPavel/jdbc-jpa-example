@@ -1,10 +1,25 @@
 package org.gnusinpavel.itlab.entity;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "employee")
+@SequenceGenerator(name = "id_gen", sequenceName = "employee_id_seq")
 public class Employee {
-    private long id;
+    @Id
+    @GeneratedValue(generator = "id_gen")
+    private Long id;
+
+    @Column
     private String name;
+
+    @Column
     private String surname;
+
+    @Column
     private int age;
+
+    @Column
     private boolean gender;
 
     public Employee() {
@@ -59,7 +74,7 @@ public class Employee {
 
     @Override
     public int hashCode() {
-        int hashCode = (int) id;
+        int hashCode = id != null ? id.intValue() : 0;
         hashCode = 47 * hashCode + (name != null ? xor(name.getBytes()) : 0);
         hashCode = 47 * hashCode + (surname != null ? xor(surname.getBytes()) : 0);
         hashCode = 47 * hashCode + xor(Integer.toString(age).getBytes());
@@ -75,7 +90,7 @@ public class Employee {
             return false;
         } else if (obj instanceof Employee) {
             Employee e = (Employee) obj;
-            return id == e.id && name.equals(e.name) && surname.equals(e.surname) && age == e.age && gender == e.gender;
+            return id.equals(e.id) && name.equals(e.name) && surname.equals(e.surname) && age == e.age && gender == e.gender;
         }
         return super.equals(obj);
     }
